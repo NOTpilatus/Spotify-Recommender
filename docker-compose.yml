@@ -1,0 +1,32 @@
+version: '3'
+services:
+  tweet_collector:
+    build:
+      context: tweet_collector/
+      dockerfile: Dockerfile
+      environment: 
+        - TRACK = ${TRACK}
+        - PG_HOST
+        - PG_USERNAME
+        - PG_PORT
+        - PG_DB
+        - PG_PASSWORD
+
+    volumes:
+    - ./tweet_collector/:/app 
+      - mypg
+
+      
+
+  mypg:
+    image: postgres:12.4
+    ports:
+      - 5555:5432
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+
+    
+
+  

@@ -4,6 +4,8 @@ import sys
 import os
 import time
 import logging
+from sqlalchemy import create_engine 
+import psycopg2
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from pprint import pprint
 import pandas as pd
@@ -15,11 +17,17 @@ import get_genres
 
 ############################# VARIABLES #######################################################
 
+# postgres authentification
+HOST = os.getenv('PG_HOST')
+USERNAME = os.getenv('PG_USER')
+PORT = os.getenv('PG_PORT')
+DB = os.getenv('PG_DB')
+PASSWORD = os.getenv('PG_PASSWORD')
 
 # spotify credentials
-client = cred.SPOTIPY_CLIENT_ID
-secret = cred.SPOTIPY_CLIENT_SECRET
-redirect = cred.SPOTIPY_REDIRECT_URI
+client = os.getenv('SPOTIPY_CLIENT_ID')
+secret = os.getenv('SPOTIPY_CLIENT_SECRET')
+redirect = os.getenv('SPOTIPY_REDIRECT_URI')
 
 scope = "user-read-private user-read-playback-state,user-modify-playback-state"
 username = "pontze84"
@@ -40,12 +48,18 @@ except (AttributeError, JSONDecodeError):
 # instantiating spotipy object
 
 spp = spotipy.Spotify(auth=token)
-
-time.sleep(3)
+res = spp.devices()
 user = spp.current_user()
 displayName = user["display_name"]
 follower = user["followers"]["total"]
 all_genres = get_genres.result
+
+#postgres engine
+engine = create_engine(f'postgres://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DB}')
+
+EXTRACT_QUERY = ''' SELECT * FROM tweets 
+                    ORDER BY id DESC NULLS FIRST
+                    LIMIT 10  ; '''
 
 
 # Vader Sentiment Analysis
@@ -151,7 +165,7 @@ os.system("clear")
 
 
 os.system(
-    "docker-compose -f /home/spiced/Spiced/spearmint-vector-student-code/FINAL/docker-compose.yml up -d"
+    "docker-compose up -d"
 )
 print()
 print()
